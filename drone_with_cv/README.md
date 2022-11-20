@@ -1,5 +1,7 @@
 # Drone with computer vision on Jetson-NX(ARMv8)
+
 ## computer vision using `detectNet` of `jetson-inference`
+* [jetson-inference](https://github.com/dusty-nv/jetson-inference)
 ## control algorithm:
 * PID control
 ## sensor:
@@ -7,4 +9,5 @@
 * Gyro
 * webcam
 * pca9685
+
 
