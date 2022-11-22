@@ -28,7 +28,6 @@
 
 static volatile int done;
 pthread_mutex_t lock;
-pthread_barrier_t barrier;
 int loop_stats_pid = 0;
 int loop_stats_gyro = 0;
 int loop_stats_bat_volt = 0;
@@ -89,7 +88,7 @@ void control()
 
     for (i = 0; i < 4; i++) {
         motorV[i] = (motorF[i] - transferFuc[1][i]) / transferFuc [0][i] / 200;
-        printf("%f\t%f\n", motorF[i], motorV[i]);
+        //printf("%f\t%f\n", motorF[i], motorV[i]);
         //motor_set_val(i+1, motorV[i]);
     }
 }
@@ -189,7 +188,7 @@ static void *gyropid(void *param)
         loop_stats_gyro = 0;
         fprintf(gyro_data, "%d\n", cnt);
         
-        //usleep(1500);
+        
         
     }
     close(gyro_fd);
@@ -372,10 +371,8 @@ int main(int argc, char *argv[])
         perror("cannot creat cv thread");
         return -1;
     }
-
-//    printf("\n**********************\n       main_waiting       \n**********************\n");
-//    pthread_barrier_wait(&barrier);
-//    pthread_barrier_destroy(&barrier);
+    
+//--------------------------------------------------------------------
 
     if (pthread_join(cpu_dvfsT, NULL) != 0) {
         perror("call cpu_dvfs pthread_join function fail");
