@@ -1,6 +1,10 @@
 # Drone with computer vision on Jetson-NX(ARMv8)
 * This project focuses on low power management and integrating flight system with image recognition system.
 * Using DVFS on CPU and GPU, and even exploring relationship with DVFS and drone-attitude control frequency.
+## how to compile the project
+* `$ mkdir build && cd build`
+* `$ cmake ../`
+* `$ make`
 ## computer vision using `detectNet` of `jetson-inference`
 * [jetson-inference](https://github.com/dusty-nv/jetson-inference)
 ## control algorithm:
