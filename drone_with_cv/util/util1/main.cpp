@@ -28,6 +28,7 @@
 #define available_gpufreq   13
 
 #define setaffinity
+#define DVFS
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t flock = PTHREAD_MUTEX_INITIALIZER;
@@ -243,7 +244,7 @@ void *cv(void *param)
     return NULL;
 }
 
-
+#ifdef DVFS
 static inline void sig_usr(int signo)
 {
     FILE *set_gfreq, *set_cfreq;
@@ -275,7 +276,7 @@ static inline void sig_usr(int signo)
     pclose(set_gfreq);
 }
 
-void *DVFS(void *param)
+void *dvfs(void *param)
 {
     printf("gpu_dvfs_thread pid:%d, tid:%d pthread_self:%lu\n", getpid(), gettid(), pthread_self());
     
@@ -304,6 +305,7 @@ void *DVFS(void *param)
 
     return NULL;
 }
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -312,7 +314,6 @@ int main(int argc, char *argv[])
     pthread_t gyropidT;
     pthread_t gpsT;
     pthread_t cvT;
-    pthread_t dvfsT;
     int  ret;
 
 //set affinity-------------------------------------
@@ -330,10 +331,10 @@ int main(int argc, char *argv[])
     int gfreq[13] = {204000000, 306000000, 408000000, 510000000, 599250000, 701250000, 803250000, 854250000, 905250000, 956250000, 1007250000, 1058250000, 1109250000};
     for (int i = 0; i < available_gpufreq; i++) {
         CFG_format[i].gpufreq = gfreq[i];
-        if (i <= 1) {
+        if (i < 1) {
             CFG_format[i].cpufreq = 268800; 
         }
-        else if (1 < i && i < 5) {
+        else if (1 <= i && i < 5) {
             CFG_format[i].cpufreq = 345600; 
         }
         else if (i >= 5) {
@@ -342,13 +343,16 @@ int main(int argc, char *argv[])
     }
 
     printf("main_thread pid:%d, tid:%d pthread_self:%lu\n", getpid(), gettid(), pthread_self());
-    
-    ret = pthread_create(&dvfsT, NULL, DVFS, NULL);
+
+#ifdef DVFS
+    pthread_t dvfsT;
+    ret = pthread_create(&dvfsT, NULL, dvfs, NULL);
     fprintf(fd,"gpu_dvfsT creat: %d\n", time(NULL));
     if (ret == -1) {
         perror("cannot creat gpu_dvfs thread");
         return -1;
     }
+#endif
 
     ret = pthread_create(&gyropidT, NULL, gyropid, NULL);
     fprintf(fd,"gyropidT creat: %d\n", time(NULL));
@@ -386,7 +390,7 @@ int main(int argc, char *argv[])
             fscanf(tp, "%d", &total_power);
             fscanf(cur_cf, "%d", &c_cf);
             fscanf(cur_gf, "%d", &c_gf);
-            fprintf(freq_data, "%d %d %d %d %d\n", c_cf/1000, c_gf/1000000, sec, total_power, motor_freq);
+            fprintf(freq_data, "%d %d %d %d %d %d\n", c_cf/1000, c_gf/1000000, sec, total_power, motor_freq, sched_getcpu());
 
             fclose(cur_cf);
             fclose(cur_gf);
@@ -397,7 +401,7 @@ int main(int argc, char *argv[])
     fclose(freq_data);
 
 //--------------------------------------------------------------------------------------
-    
+#ifdef DVFS 
     if (pthread_join(dvfsT, NULL) != 0) {
         perror("call gpu_dvfs pthread_join function fail");
         return -1;
@@ -405,7 +409,7 @@ int main(int argc, char *argv[])
         printf("gpu_dvfsT join success");
     fprintf(fd,"gpu_dvfsT join: %d\n", time(NULL));
     }
-
+#endif
 
     if (pthread_join(gyropidT, NULL) != 0) {
         perror("call pthread_join function fail");
