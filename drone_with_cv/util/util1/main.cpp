@@ -239,7 +239,7 @@ void *cv(void *param)
 //-------------------------------------------------
     char cmd[50];
     printf("cv_thread pid:%d, tid:%d pthread_self:%lu\n", getpid(), gettid(), pthread_self());
-    strcpy(cmd, "detectnet /dev/video0");
+    strcpy(cmd, "detectnet /dev/video0 --width=1920 --height=1080");
     system(cmd);
     return NULL;
 }
