@@ -29,6 +29,7 @@
 
 #define setaffinity
 #define DVFS
+//#define rm_loop
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t flock = PTHREAD_MUTEX_INITIALIZER;
@@ -36,22 +37,15 @@ pthread_mutex_t stats_lock = PTHREAD_MUTEX_INITIALIZER;
 int loop_stats_gyropid = 0;
 int g_index = 12;    //numbers of available_gfreq
 int motor_freq = 0;  //set motor Hz
+int dvfs_cnt = 0;    //count dvfs adjustment times
+int delay = 0;
+
 
 struct CFG_format
 {
     int gpufreq;
     int cpufreq;
 }CFG_format[13];
-
-int sched_setattr(pid_t pid, const struct sched_attr *attr, unsigned int flags)
-{
-    return syscall(__NR_sched_setattr, pid, attr, flags);
-}
-
-int sched_getattr(pid_t pid, struct sched_attr *attr, unsigned int size, unsigned int flags)
-{
-    return syscall(__NR_sched_getattr, pid, attr, size, flags);
-}
 
 void motor_set_val(int number, int motor_val)
 {
@@ -184,15 +178,19 @@ static void *gyropid(void *param)
     test_sec = time(NULL) + 1;
     
     int times_cnt = 0;
+#ifndef rm_loop
     while(time(NULL) < endwait) {
+#endif
         pthread_mutex_lock(&stats_lock);
         loop_stats_gyropid = 1;
         pthread_mutex_unlock(&stats_lock);
         
         times_cnt ++;
+#ifndef rm_loop
         if (times_cnt != 5000) 
             continue;
         else {
+#endif
             clock_gettime(CLOCK_REALTIME, &g_s);
             get_gyro_data(gyro_fd);
             control();
@@ -211,11 +209,15 @@ static void *gyropid(void *param)
                 test_sec = time(NULL) + 1;
             }
             times_cnt = 0;
+#ifndef rm_loop        
         }
+#endif
         pthread_mutex_lock(&stats_lock);
         loop_stats_gyropid = 0;
         pthread_mutex_unlock(&stats_lock);
+#ifndef rm_loop   
     }
+#endif
     close(gyro_fd);
     fclose(fq);
     fclose(p);
@@ -292,22 +294,31 @@ void *dvfs(void *param)
 #endif
 //-------------------------------------------------
 
+    int delay_time_t, delay_time_s;
     time_t endwait, stop_time = 60;
     endwait = time(NULL) + stop_time; 
+#ifndef rm_loop    
     while(time(NULL) < endwait) {
-        if (loop_stats_gyropid == 0) {
+#endif
+        delay ++;
+        delay_time_t = delay % 10;
+        delay_time_s = delay % 17;
+        if (loop_stats_gyropid == 0 && delay_time_t == 0 && delay_time_s == 0) {
+            dvfs_cnt ++;
             if (signal(SIGUSR1, sig_usr) == SIG_ERR)
                 perror("can't catch SIGUSR1\n");
             else if (signal(SIGUSR2, sig_usr) == SIG_ERR)
                 perror("can't catch SIGUSR2\n");
         }
+#ifndef rm_loop    
     }
+#endif
 
     return NULL;
 }
 #endif
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
     FILE * fd = fopen("threadlog.txt","w");
 
@@ -381,7 +392,9 @@ int main(int argc, char *argv[])
     time_t endwait, cnt_sec;
     endwait = time(NULL) + 60;
     cnt_sec = time(NULL) + 1;
+#ifndef rm_loop    
     while (time(NULL) < endwait) {
+#endif
         if (time(NULL) == cnt_sec) {
             sec ++;
             FILE *cur_cf = fopen("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq","r");
@@ -397,7 +410,9 @@ int main(int argc, char *argv[])
             fclose(tp);
             cnt_sec = time(NULL) + 1;
         }
+#ifndef rm_loop    
     }
+#endif
     fclose(freq_data);
 
 //--------------------------------------------------------------------------------------
@@ -441,6 +456,7 @@ int main(int argc, char *argv[])
 //    motor_stop();
 
     pthread_mutex_destroy(&flock);
+    printf("\nDVFS cnt: %d\ndelay_cnt: %d\n", dvfs_cnt, delay);
     fclose(fd);
     return 0;
 }
