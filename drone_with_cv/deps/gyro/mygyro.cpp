@@ -24,6 +24,7 @@
 
 static int frame_rate;
 float imusol[3];
+float imusol_gyr[3];
 
 static uint8_t buf[2048];
 void dump_data_packet(receive_imusol_packet_t *data);
@@ -120,6 +121,7 @@ void get_gyro_data(int fd)
     */    
         for(i = 0; i < 3; i++) {
             imusol[i] = receive_imusol.eul[i];
+            imusol_gyr[i] = receive_imusol.gyr[i];
         }
 
         //puts("\033c");

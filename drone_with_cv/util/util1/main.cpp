@@ -1,38 +1,20 @@
 /* This code will execute 4~5 threads to run the drone programming */
 
-
-#define _GNU_SOURCE
-#include <stdio.h>
-#include <iostream>
-#include <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <string.h>
-#include <time.h>
-#include <math.h>
-#include <signal.h>
-#include <errno.h>
-#include <linux/kernel.h>
-#include <linux/types.h>
-#include <sched.h>
-
-#include "gps.h"
-#include "mygyro.h"
 #include "main.h"
 
 #define default_port "ttyUSB0"
 #define gettid() syscall(__NR_gettid)
 #define test 
-#define tsec 60
+#define tsec                60
 #define available_gpufreq   13
+#define ms_buf_size         100
 
 #define setaffinity
-#define DVFS
+//#define DVFS
 //#define rm_loop
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t flock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t lock       = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t flock      = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t stats_lock = PTHREAD_MUTEX_INITIALIZER;
 int loop_stats_gyropid = 0;
 int g_index = 12;    //numbers of available_gfreq
@@ -40,6 +22,8 @@ int motor_freq = 0;  //set motor Hz
 int dvfs_cnt = 0;    //count dvfs adjustment times
 int delay = 0;
 
+int motor_speed_buffer[ms_buf_size] = {0};
+int ms_buf_index = 0;
 
 struct CFG_format
 {
@@ -51,27 +35,30 @@ void motor_set_val(int number, int motor_val)
 {
     int i;
 
+    //Add all motor same value
     if (number == 6) {
+        int pwm;
         cout << "mode 6" << endl;
-        int pwm[4];
-        cout << "mode " << number << endl;
+
         for (i = 0; i < 4; i++) {
-            pwm[i] = motor.getPWM(motor_no[i]);
-            motor.setPWM(motor_no[i], pwm[i] + motor_val);
-            cout << "set motor " << motor_no[i] << " as " << motor_val + pwm[i] << endl;
+            pwm = motor.getPWM(motor_no[i]);
+            motor_set_val(i+1, pwm + motor_val);
         }
     }
-    else if (motor_val >= min_pulse && motor_val <= max_pulse) {
-        if (number == 5) {
-            for (i = 0; i < 4; i++) {
-                motor.setPWM(motor_no[i], motor_val);
-                cout << "set motor " << motor_no[i] << " as " << motor_val << endl;
-            }
+    //Set all motors
+    else if (number == 5) {
+        cout << "mode 5" << endl;
+        
+        for (i = 0; i < 4; i++) {
+            motor_set_val(i+1, motor_val);
         }
-        else if (number >= 1 && number <= motor_num) {
-            motor.setPWM(motor_no[number - 1], motor_val);
-            cout << "set motor " << motor_no[number - 1] << " as " << motor_val << endl;
-        }
+    }
+    //Set one motor
+    else if (number >= 1 && number <= 4) { 
+        motor_val = (motor_val > motor_start_val[number-1]) ? motor_val : motor_start_val[number-1];
+        motor_val = (motor_val > motor_start_val[number-1]+pulse_range) ? motor_start_val[number-1]+pulse_range : motor_val;
+        motor.setPWM(motor_no[number-1], motor_val);
+//        cout << "set motor " << number << " as " << motor_val << endl;
     }
 }
 
@@ -83,40 +70,48 @@ void motor_stop()
 
 void control()
 {
-    int i, j;
-    float pidout, motorF[4] = {0.0f}, motorV[4] = {0.0f};
-    
-
-    control_core[0].pid.Calculate(tan(imusol[0]), control_core[0].target);
-    control_core[1].pid.Calculate(tan(imusol[1]), control_core[1].target);
-
+    int i;
+    control_core[2].pid.Calculate(imusol[2], control_core[2].target);
+    control_core[5].pid.Calculate(imusol_gyr[2], control_core[2].pid.output);
 
     for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            motorF[j] += control_core[i].pid.output * control_core[i].weight[j];
-        }
+        //float speed = motor.getPWM(motor_no[i]) + control_core[5].pid.output * control_core[5].weight[i];
+        float speed = motor_hold[i] + control_core[5].pid.output * control_core[2].weight[i];
+        //motor_set_val(i+1, speed);
+        if (i == 1)
+            motor_speed_buffer[ms_buf_index] = speed;  
     }
 
-    for (i = 0; i < 4; i++) {
-        motorV[i] = (motorF[i] - transferFuc[1][i]) / transferFuc [0][i] / 200;
-        //printf("%f\t%f\n", motorF[i], motorV[i]);
-        //motor_set_val(i+1, motorV[i]);
-    }
+    ms_buf_index++;
+    int buf_end = ms_buf_size - 1;
+    if (ms_buf_index == buf_end)
+        ms_buf_index = 0;
 }
 
 void control_init()
 {
-    for (int i = 0; i < 2; i++)
-        control_core[i].target = 0.0f;
-    
-    control_core[0].target = -0.2f;
-    control_core[1].target = -0.2f;
-    control_core[3].target = 32.0f;
+    int i;
 
-    control_core[0].weight[2] = -1.0f;
-    control_core[0].weight[3] = -1.0f;
+    control_core[0].pid.IsAngle();
+    control_core[1].pid.IsAngle();
+    control_core[2].pid.IsAngle();
+
+    control_core[0].target = 0.0f;
+    control_core[1].target = 0.0f;
+    control_core[2].target = -74.0f;
+
+    control_core[0].weight[0] = -1.0f;
+    control_core[0].weight[1] = -1.0f;
     control_core[1].weight[0] = -1.0f;
     control_core[1].weight[3] = -1.0f;
+    control_core[2].weight[1] = -1.0f;
+    control_core[2].weight[3] = -1.0f;
+
+    for (i = 0; i < 4; i++) {                
+        motor_set_val(i+1, motor_start_val[i]);     
+    }                                                
+    for (i = 3; i < 6; i++)
+        control_core[i].pid.Setpid("/home/uav/code/controller/deps/pid_controller/init_motor.txt\0");
 }
 
 static inline double diff_in_second(struct timespec t1, struct timespec t2)
@@ -343,13 +338,13 @@ int main(int argc, char **argv)
     for (int i = 0; i < available_gpufreq; i++) {
         CFG_format[i].gpufreq = gfreq[i];
         if (i < 1) {
-            CFG_format[i].cpufreq = 268800; 
-        }
-        else if (1 <= i && i < 5) {
             CFG_format[i].cpufreq = 345600; 
         }
-        else if (i >= 5) {
+        else if (1 <= i && i < 5) {
             CFG_format[i].cpufreq = 422400; 
+        }
+        else if (i >= 5) {
+            CFG_format[i].cpufreq = 499200; 
         }
     }
 
@@ -455,8 +450,15 @@ int main(int argc, char **argv)
 
 //    motor_stop();
 
+    pthread_mutex_destroy(&lock);
     pthread_mutex_destroy(&flock);
+    pthread_mutex_destroy(&stats_lock);
     printf("\nDVFS cnt: %d\ndelay_cnt: %d\n", dvfs_cnt, delay);
+
+    FILE *ms = fopen("m2c.txt","w");
+    for (int i = 0; i < 100; i++) 
+        fprintf(ms, "%d ",motor_speed_buffer[i]);
+    fclose(ms);
     fclose(fd);
     return 0;
 }

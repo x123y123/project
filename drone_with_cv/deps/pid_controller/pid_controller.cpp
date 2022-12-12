@@ -7,8 +7,10 @@ PID::PID()
     
     fd = fopen(INIT_DIR, "r");
 
-    if (!fd)
+    if (!fd) {
         printf("open file fail!\n");
+        return;
+    }
 
     fscanf(fd, "%f %f %f", &_kp, &_ki, &_kd);
 
@@ -28,12 +30,45 @@ void PID::Setpid(float kp, float ki, float kd)
     _kd = kd;
 }
 
+void PID::Setpid(char *Kpid_dir)
+{
+    FILE *fd;
+
+    fd = fopen(Kpid_dir, "r");
+
+    if (!fd) {
+        printf("open file fail!\n");
+        return;
+    }
+
+    fscanf(fd, "%f %f %f", &_kp, &_ki, &_kd);
+
+    fclose(fd);
+}
+
+void PID::IsAngle()
+{
+    _approach_angle = true;
+}
+
 bool PID::Calculate(float input, float target)
 {
     float error, dInput, out;
 
     error = target - input;
     dInput = input - _preInput;
+
+    if (_approach_angle) {
+        if (error > 180)
+            error -= 360;
+        else if (error < -180)
+            error += 360;
+
+        if (dInput > 180)
+            dInput -= 360;
+        else if (dInput < -180)
+            dInput += 360;
+    }
 
     GetErrorSum(error);
 

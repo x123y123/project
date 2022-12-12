@@ -13,9 +13,12 @@ public:
     PID();
     PID(float, float, float);
     void Setpid(float, float, float);
+    void Setpid(char*);
+    void IsAngle();
     bool Calculate(float, float);
 
 private:
+    bool _approach_angle = false;
     float _kp;
     float _ki;
     float _kd;
