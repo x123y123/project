@@ -98,7 +98,14 @@ int main() {
         int next_state = 0; // Next state determined by the action and the environment
 
         // Perform the action and get the reward and next state
-        // ...
+        if (action == 0) {
+            // Rise the CPU frequency
+            // ...
+        } else if (action == 1) {
+            // Reduce the CPU frequency
+            // ...
+        }
+
 
         add_experience(state, action, reward, next_state);
 
