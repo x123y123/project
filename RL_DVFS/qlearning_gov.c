@@ -35,7 +35,26 @@ int cpufreq[NUM_FREQS] = {115200, 192000, 268800, 345600, 422400, 499200, 576000
 FILE* cpu_temp = fopen("/sys/deevices/virtual/thermal/thermal_zone0/tmp","r");
 FILE* gpu_temp = fopen("/sys/deevices/virtual/thermal/thermal_zone3/tmp","r");
 FILE* set_cfreq = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed","w");
+FILE* cpu_power = fopen("/sys/bus/i2c/drivers/ina3221x/7-0040/iio\:device0/in_power0_input","r");
+FILE* cpu_vol = fopen("/sys/bus/i2c/drivers/ina3221x/7-0040/iio\:device0/in_voltage0_input","r");
 
+float get_cpu_power(void)
+{
+    int power_mW;
+    fscanf(cpu_power, "&d", &power_mW);
+    float power_value = power_mW / 1000;
+
+    return power_value;
+}
+
+float get_cpu_vol(void)
+{
+    int vol_mV;
+    fscanf(cpu_vol, "&d", &vol_mV);
+    float vol_value = vol_mV / 1000;
+
+    return vol_value;
+}
 
 float get_cpu_temp(void)
 {
@@ -66,7 +85,9 @@ float* get_raw_state()
     float state_buff[NUM_STATES];
     float cpu_temp = get_cpu_temp();
     float gpu_temp = get_gpu_temp();
-    float num_i = 
+    float cpu_power = get_cpu_power();
+    float cpu_vol = get_cpu_vol();
+    float IOC = get_IOC();
 
     return state_buff;
 }
@@ -176,4 +197,8 @@ int main()
 {
     q_learning();
     fclose(set_cfreq);
+    fclose(cpu_temp);
+    fclose(gpu_temp);
+    fclose(cpu_vol);
+    fclose(cpu_power);
 }
