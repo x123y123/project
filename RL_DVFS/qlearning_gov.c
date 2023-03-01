@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <pthread.h>
+//#include "perf_event_open.h"
 
 #define NUM_STATES      5
 #define NUM_ACTIONS     25
@@ -38,13 +40,21 @@ int cpufreq[NUM_FREQS] = {115200, 192000, 268800, 345600, 422400, 499200, 576000
 7: PMIC-Die
 8: thermal-fan-est
 */
+FILE* cpu_temp;
+FILE* gpu_temp;
+FILE* set_cfreq;
+FILE* cpu_power;
+FILE* cpu_volts;
 
-FILE* cpu_temp = fopen("/sys/deevices/virtual/thermal/thermal_zone0/tmp","r");
-FILE* gpu_temp = fopen("/sys/deevices/virtual/thermal/thermal_zone3/tmp","r");
-FILE* set_cfreq = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed","w");
-FILE* cpu_power = fopen("/sys/bus/i2c/drivers/ina3221x/7-0040/iio\:device0/in_power0_input","r");
-FILE* cpu_vol = fopen("/sys/bus/i2c/drivers/ina3221x/7-0040/iio\:device0/in_voltage0_input","r");
+void fs_init(void)
+{
+    cpu_temp = fopen("/sys/deevices/virtual/thermal/thermal_zone0/tmp","r");
+    gpu_temp = fopen("/sys/deevices/virtual/thermal/thermal_zone3/tmp","r");
+    set_cfreq = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed","w");
+    cpu_power = fopen("/sys/bus/i2c/drivers/ina3221x/7-0040/iio\:device0/in_power0_input","r");
+    cpu_volts = fopen("/sys/bus/i2c/drivers/ina3221x/7-0040/iio\:device0/in_voltage0_input","r");
 
+}
 float get_cpu_power(void)
 {
     int power_mW;
@@ -57,7 +67,7 @@ float get_cpu_power(void)
 float get_cpu_volts(void)
 {
     int vol_mV;
-    fscanf(cpu_vol, "&d", &vol_mV);
+    fscanf(cpu_volts, "&d", &vol_mV);
     float vol_value = vol_mV / 1000;
 
     return vol_value;
@@ -218,10 +228,33 @@ void q_learning()
 
 int main()
 {
+    // create a perf_event thread
+    pthread_t perf_event;
+    int ret;
+
+    ret = pthread_create(&perf_event, NULL, perf_event_open, NULL);
+    if (ret == -1) {
+        perror("cannot creat perf_event thread");
+        return -1;
+    }
+
+    fs_init();
+    
+    // training
     q_learning();
+
+    // thread join
+    if (pthread_join(perf_event, NULL) != 0) {
+        perror("call perf_event pthread_join function fail");
+        return -1;
+    } else {
+        printf("perf_event join success");
+    }
+
+    // file stream close
     fclose(set_cfreq);
     fclose(cpu_temp);
     fclose(gpu_temp);
-    fclose(cpu_vol);
+    fclose(cpu_volts);
     fclose(cpu_power);
 }

@@ -12,6 +12,7 @@
 #include <sched.h>
 
 struct cpufreq_policy *policy;
+float ipc;
 
 //目前perf_event_open在glibc中没有封装，需要手工封装一下
 __attribute__((contructor)) static
@@ -29,7 +30,8 @@ struct read_format
     uint64_t values[2];
 };
 
-int main(int argc,const char *argv[])
+//int main(int argc,const char *argv[])
+void* perf_event_open(void)
 {
 /*
     int cpu_id = 4;
@@ -49,7 +51,7 @@ int main(int argc,const char *argv[])
     pclose(command);
 //--------------------------------------------
 */
-
+/*
     char cmd_buf[5];
     char cpu_freq_buf[8];
     int test_sec;
@@ -59,7 +61,7 @@ int main(int argc,const char *argv[])
         test_sec = atoi(cmd_buf);
     }
     //printf("test_sec = %d\n",test_sec);
- 
+*/
  
     struct perf_event_attr attr;
 //cycle events-------------------------------------------    
@@ -104,7 +106,6 @@ int main(int argc,const char *argv[])
     
     while(1) {
     //while(time(NULL) < endwait) {
-        float ipc;
         struct read_format aread;
     //读取最新的计数值，每次读取一个结构体
         read(fd,&aread,sizeof(struct read_format));
