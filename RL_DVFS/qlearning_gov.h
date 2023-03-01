@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-int 
-
+/*
 // Min and Max limits are in linear scale
 float min[3] = { 
                 0.0f,  // usage
@@ -18,7 +17,8 @@ float max[3] = {
                 56.0f, // temp
                 6.0f   // power(w)
                 };
-
+*/
+extern float IPC;
 
 #ifdef __cplusplus
 }
