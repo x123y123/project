@@ -30,7 +30,7 @@ int cpufreq[NUM_FREQS] = {115200, 192000, 268800, 345600, 422400, 499200, 576000
 //double IPS_MAX = IPC_MAX * (cpufreq[NUM_FREQS - 1] * 1000.0);
 
 /*
-   /sys/devices/virtual/thermal/thermal_zone<X>/temp
+/sys/devices/virtual/thermal/thermal_zone<X>/temp
 0: BCPU-therm
 1: MCPU-therm
 2: GPU-therm
