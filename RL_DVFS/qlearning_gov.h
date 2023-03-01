@@ -6,13 +6,13 @@ extern "C" {
 
 /*
 // Min and Max limits are in linear scale
-float min[3] = { 
+float min[3] = {
                 0.0f,  // usage
                 30.0f, // temp
                 0.0f   // power(w)
                 };
 
-float max[3] = { 
+float max[3] = {
                 1.2f,  // usage
                 56.0f, // temp
                 6.0f   // power(w)
