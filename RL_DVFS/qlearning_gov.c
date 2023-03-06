@@ -24,8 +24,15 @@
 #define CPI_SLOW 14
 
 #define RHO 5
+#define Q_RANDOM
 
-#define max(a, b) ((a > b) ? a : b)
+#define max(x, y)            \
+    ({                       \
+        typeof(x) _x = (x);  \
+        typeof(y) _y = (y);  \
+        (void) (&_x == &_y); \
+        _x > _y ? _x : _y;   \
+    })
 
 // Q-table
 float Q[NUM_CPI_STATES][NUM_ACTIONS] = {0.0f};
@@ -157,11 +164,12 @@ void update_q_off_policy(float *last_state,
         }
     }
     // update q-table, by TD-method
-    for (int j = 0; j < NUM_ACTIONS; j++) {
-        Q[cur_states_index][j] =
-            old_value[cur_states_index][j] +
-            ALPHA * (total_return - old_value[cur_states_index][j]);
-    }
+    // for (int j = 0; j < NUM_ACTIONS; j++) {
+    Q[cur_states_index][last_action_index] =
+        old_value[cur_states_index][last_action_index] +
+        ALPHA * (total_return - old_value[cur_states_index][last_action_index]);
+
+    //}
 }
 
 float reward_func(float *states, int new_freq)
@@ -197,6 +205,14 @@ void q_learning()
     int last_action_index = 0;
     int best_action_index = 0;
     srand(time(NULL));  // set rand seed
+#ifdef Q_RANDOM
+    // Initial random value to Q-table
+    for (int i = 0; i < NUM_CPI_STATES; i++) {
+        for (int j = 0; j < NUM_ACTIONS; j++) {
+            Q[i][j] = (float) rand() / (RAND_MAX + 1.0);
+        }
+    }
+#endif
 
     while (episode < MAX_EPISODE) {
         sleep(1);
@@ -218,16 +234,20 @@ void q_learning()
         }
 
         if (rand() > episode) {
-            float best_next_return = 0;
+            int nice_index = 0;
+            float best_next_return = 0.0f;
             int cur_states_index = states[1] - 4;
             for (int i = 0; i < NUM_ACTIONS; i++) {
                 if (max(best_next_return, Q[cur_states_index][i]) ==
-                    Q[cur_states_index][i])
-                    best_next_return = i;
+                    Q[cur_states_index][i]) {
+                    best_next_return = Q[cur_states_index][i];
+                    nice_index = i;
+                }
             }
-            best_action_index = best_next_return;
+            best_action_index = nice_index;
         } else
-            best_action_index = rand() % NUM_ACTIONS;
+            best_action_index = (rand() % (NUM_ACTIONS + 1));
+        printf("best_action_index: %d\n", best_action_index);
         /*
                 // Penalize trying to go out of bounds, since there is no
            utility in doing so. if (best_action_index < 0 || best_action_index >
@@ -252,6 +272,7 @@ void q_learning()
             last_states[i] = states[i];
         last_action_index = best_action_index;
 
+        printf("episode: %d\n", episode);
         episode++;
     }
     free(states);
