@@ -1,6 +1,7 @@
 # STM32F407VET6 with Nuttx RTOS
 * host device: x86_64 ubuntu 22.04
 * STM32F407VET6
+* ST-Linkv2
 
 ## Install
 ### Environment setting in Ubuntu_22.04
