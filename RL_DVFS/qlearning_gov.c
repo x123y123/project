@@ -6,6 +6,8 @@
 #include "pmu_monitor.h"
 #include "qlearning_gov.h"
 
+#define Q_EXP			  "./script/q_exp.txt"
+
 #define NUM_STATES        4
 #define NUM_ACTIONS       25
 #define NUM_FREQS         25
@@ -13,12 +15,12 @@
 
 #define ALPHA             0.1
 #define GAMMA             0.9
-#define MAX_EPISODE       1000
+#define MAX_EPISODE       5000
 #define MAX_CPUFREQ       1907200
 #define MIN_CPUFREQ       115200
 #define MAX_CPU_VOLTS     5.5 //need to check!!!
 
-#define TEMP_LIMIT        43
+#define TEMP_LIMIT        40
 // let CPI split to 10 slices and 10 is NUM_CPI_STATES
 #define CPI_FAST		  4
 #define CPI_SLOW		  14
@@ -33,7 +35,7 @@
 		_x > _y ? _x : _y; })
 
 // Q-table
-float Q[NUM_CPI_STATES][NUM_ACTIONS] = {0.0f};
+float Q[NUM_CPI_STATES][NUM_ACTIONS];
 
 
 // cpufreq-table
@@ -160,16 +162,21 @@ float reward_func(float* states, int new_freq)
     temp_var = cpu_temp - TEMP_LIMIT;
 
     // reward judged by throughput because it can let system consider more performance aware
-    reward += (CPI_SLOW / CPI);
-    if (temp_var > 0) { // overheat
+    reward += (CPI_FAST / CPI);
+   
+	if (temp_var > 0) { // overheat
         thermal_penalty += (RHO * temp_var * (cur_power / max_power));
         reward -= thermal_penalty;
     }
+
     return reward;
 }
 
 void q_learning()
 {
+	FILE *a_test = fopen("script/action_record.txt", "w");
+	FILE *s_test = fopen("script/state_record.txt", "w");
+
     int episode = 0;
     float reward = 0.0f;
     float last_states[NUM_STATES] = {0.0f};
@@ -177,6 +184,24 @@ void q_learning()
     int last_action_index = 0;
     int best_action_index = 0;
     srand(time(NULL)); // set rand seed
+
+	if (!fopen(Q_EXP, "r")) {
+		for (int i = 0; i < NUM_CPI_STATES; i++) {
+			for (int j = 0; j < NUM_ACTIONS; j++) {
+				Q[i][j] = 0.0f;
+			}
+		}	
+	}
+	else {
+		FILE *old_exp = fopen(Q_EXP, "r");
+		for (int i = 0; i < NUM_CPI_STATES; i++) {
+			for (int j = 0; j < NUM_ACTIONS; j++) {
+				fscanf(old_exp, "%f", &Q[i][j]);
+			}
+		}
+		fclose(old_exp);	
+	}
+
 #ifdef Q_RANDOM
 	// Initial random value to Q-table
 	for (int i = 0; i < NUM_CPI_STATES; i++) {
@@ -193,6 +218,7 @@ void q_learning()
         // Update state-action-reward trace
 		if (last_states[0] == 0 || last_states[1] == 0 || last_states[2] == 0 || last_states[3] == 0) {
 			reward = reward_func(states, cpufreq[0]);
+			//update_q_off_policy(last_states, last_action_index, states, reward);
 		}
 		else {
 			reward = reward_func(states, cpufreq[last_action_index]);
@@ -204,7 +230,7 @@ void q_learning()
 				printf("\n");
 			}
 		}
-        if (rand() > episode) {
+        if ((rand() % episode) > (episode / 2)) {
 			int nice_index = 0;
         	float best_next_return = 0.0f; 
 			int cur_states_index = states[1] - 4;
@@ -219,6 +245,8 @@ void q_learning()
         else 
 			best_action_index = (rand() % (NUM_ACTIONS + 1));
 		printf("best_action_index: %d\n", best_action_index);
+		fprintf(s_test, "%f\n", states[1]);
+		fprintf(a_test, "%d\n", cpufreq[best_action_index]/1000);
 /*
         // Penalize trying to go out of bounds, since there is no utility in doing so.
         if (best_action_index < 0 || best_action_index > NUM_ACTIONS) {
@@ -246,14 +274,93 @@ void q_learning()
 		printf("episode: %d\n", episode);
         episode++;
     }
+
+	FILE *exp = fopen(Q_EXP, "w");
+	for (int i = 0; i < NUM_CPI_STATES; i++) {
+		for (int j = 0; j < NUM_ACTIONS; j++) {
+			fprintf(exp, "%f\n", Q[i][j]);
+		}
+	}	
+	
 	free(states);
+	fclose(a_test);
+	fclose(s_test);
+	fclose(exp);
 }
 
-int main()
+void run(void)
+{
+	if (!fopen(Q_EXP, "r")) {
+		printf("U need to train first!!!\n");
+		exit(0);
+	}
+	else {
+		int episode = 0;
+		float *states;
+		int action_index = 0;
+		FILE *exp = fopen(Q_EXP, "r");
+		
+		for (int i = 0; i < NUM_CPI_STATES; i++) {
+			for (int j = 0; j < NUM_ACTIONS; j++) {
+				fscanf(exp, "%f", &Q[i][j]);
+			}
+		}
+		for (int i = 0; i < NUM_CPI_STATES; i++) {
+			for (int j = 0; j < NUM_ACTIONS; j++) {
+				printf("%f ", Q[i][j]);
+			}
+			printf("\n");
+		}
+		while (episode < MAX_EPISODE) {
+			sleep(1);
+			states = get_raw_state();
+
+			int nice_index = 0;
+			float best_next_return = 0.0f; 
+			int cur_states_index = states[1] - 4;
+			for (int i = 0; i < NUM_ACTIONS; i++) {
+				if (max(best_next_return, Q[cur_states_index][i]) == Q[cur_states_index][i]) {
+					best_next_return = Q[cur_states_index][i];
+					nice_index = i;
+				}
+			}
+			action_index = nice_index;
+
+			printf("action_index: %d\n", action_index);
+/*
+        // Penalize trying to go out of bounds, since there is no utility in doing so.
+        if (best_action_index < 0 || best_action_index > NUM_ACTIONS) {
+            if (best_action_index < 0) {
+                reward = reward - (500 * (NUM_ACTIONS - best_action_index));
+            }
+            reward = reward - (500 * (best_action_index - NUM_ACTIONS)); 
+        }
+*/
+        /*
+           _        _                     _   _             
+           | |_ __ _| | _____    __ _  ___| |_(_) ___  _ __  
+           | __/ _` | |/ / _ \  / _` |/ __| __| |/ _ \| '_ \ 
+           | || (_| |   <  __/ | (_| | (__| |_| | (_) | | | |
+           \__\__,_|_|\_\___|  \__,_|\___|\__|_|\___/|_| |_|
+
+         */
+	        // Take action
+    	    set_cpufreq(cpufreq[action_index]);    
+		
+			printf("episode: %d\n", episode);
+        	episode++;
+		}
+		fclose(exp);
+    }
+}
+
+int main(int argc, char **argv)
 {
     // create a perf_event thread
     pthread_t perf_event;
     int ret;
+	const char *mode1 = "train";
+	const char *mode2 = "run";
 
     ret = pthread_create(&perf_event, NULL, pmu_monitor, NULL);
     if (ret == -1) {
@@ -261,10 +368,19 @@ int main()
         return -1;
     }
 
-
-    // training
-    q_learning();
-
+	if (argc < 1) {
+		printf("Too less argument!\n");
+	}
+	else {
+    	// training
+		if (!strcmp(argv[1], mode1)) {
+    		q_learning();
+		}
+		// testing
+		if (!strcmp(argv[1], mode2)) {
+			run();
+		}
+	}
     // thread join
     if (pthread_join(perf_event, NULL) != 0) {
         perror("call perf_event pthread_join function fail");
@@ -272,5 +388,5 @@ int main()
     } else {
         printf("perf_event join success");
     }
-
+	return 0;
 }
