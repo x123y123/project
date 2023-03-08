@@ -33,3 +33,6 @@
 
 # Swap files
 *.swp
+
+# Mac swap
+*.D
