@@ -33,6 +33,7 @@ $ make
   $ ./configure
   $ make
   ```
+### Sim part
 keep install:
 ```shell
 $ sudo make install
@@ -43,6 +44,20 @@ $ make menuconfig
 $ make
 $ ./nuttx
 ```
+
+### Board part
+keep install:
+```shell
+$ sudo make install
+$ sudo ldconfig
+$ cd ../../nuttx
+$ ./tools/configure.sh -l stm32f4discovery:nsh
+$ make menuconfig
+$ make
+$ openocd -f interface/stlink-v2.cfg -f target/stm32f4x.cfg -c 'program nuttx.bin exit 0x08000000'
+$ sudo minicom -D /dev/ttyUSB0
+```
+
 > Using `pkill nuttx` in the another terminal, it can kill simulator
 ## Init config
 
