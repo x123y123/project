@@ -40,7 +40,7 @@ int cpufreq[25] = {115200,  192000,  268800,  345600,  422400,
 // split 4~14 to 10 levels
 ```
 ### Initial Q-table
-According to the above description about action and state, the initial Q-table may likes the following:
+According to the above description about action(kHz) and state, the initial Q-table may likes the following:
 |         |115200 |192000|268800|345600|422400|499200|...|1907200|
 |---------|-------|------|------|------|------|------|---|-------|
 | CPI = 4 |0      |0     |0     |0     |0     |0     |...|0      |
