@@ -39,6 +39,22 @@ int cpufreq[25] = {115200,  192000,  268800,  345600,  422400,
 #define CPI_SLOW  14
 // split 4~14 to 10 levels
 ```
+### Initial Q-table
+According to the above description about action and state, the initial Q-table may likes the following:
+|         |115200 |192000|268800|345600|422400|499200|...|1907200|
+|---------|-------|------|------|------|------|------|---|-------|
+| CPI = 4 |0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 5 |0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 6 |0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 7 |0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 8 |0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 9 |0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 10|0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 11|0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 12|0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 13|0      |0     |0     |0     |0     |0     |...|0      |
+| CPI = 14|0      |0     |0     |0     |0     |0     |...|0      |
+
 ### Reward Function
 
 ### Update Q off-policy(TD-learning)
