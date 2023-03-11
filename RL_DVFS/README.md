@@ -54,9 +54,14 @@ According to the above description about action and state, the initial Q-table m
 | CPI = 12|0      |0     |0     |0     |0     |0     |...|0      |
 | CPI = 13|0      |0     |0     |0     |0     |0     |...|0      |
 | CPI = 14|0      |0     |0     |0     |0     |0     |...|0      |
+> In initial Q-table part we has two choose:
+> * Initial all Q-table values by `0`.
+> * Initial all Q-table values by `random number`(but we need to find the random area).
 
 ### Reward Function
-
+* Use throughput variable `CPI` to be `reward`: may let whole system tend to performance aware.
+* Use temperature to be `penalize`: may let whole system need to consider temperature aware.
+> This part may need more paper to support
 ### Update Q off-policy(TD-learning)
 * $Q(s,a) \leftarrow Q(s,a)+ \eta[r+ \gamma \max_{a'} Q(s',a')-Q(s,a)]$
 
