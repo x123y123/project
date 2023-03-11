@@ -1,5 +1,5 @@
 # Projects 
 * Drone with Computer Vision
 * Mnist with MSE
-* Qlearning in C
+* stm32_Nuttx_RTOS
 * RL_DVFS
