@@ -42,5 +42,5 @@ int cpufreq[25] = {115200,  192000,  268800,  345600,  422400,
 ### Reward Function
 
 ### Update Q off-policy(TD-learning)
-$Q(s,a) \leftarrow Q(s,a)+ \eta[r+ \gamma \max{a'} Q(s',a')-Q(s,a)]$
+* $Q(s,a) \leftarrow Q(s,a)+ \eta[r+ \gamma \max_{a'} Q(s',a')-Q(s,a)]$
 
