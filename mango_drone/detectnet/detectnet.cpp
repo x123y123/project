@@ -24,7 +24,7 @@
 #include "videoOutput.h"
 #include <stdio.h>
 #include "detectNet.h"
-
+#include "cudaDraw.h"
 
 #include <signal.h>
 #include <time.h>
@@ -36,10 +36,10 @@
 	#define IS_HEADLESS() (const char*)NULL
 #endif
 
-//#define DVFS
-#define setaffinity
-//#define rm_loop
 #define output_stream
+
+// x, y, area
+float distance_vec[3] = {0.f};
 
 bool signal_recieved = false;
 
@@ -80,6 +80,18 @@ int usage()
 	printf("%s", Log::Usage());
 
 	return 0;
+}
+
+int find_max(float* bb_area)
+{
+	int max = 0;
+	for (int i = 1; i < sizeof(bb_area)/4; i++) {
+		if (bb_area[i] > bb_area[i - 1])
+			max = i;
+		else 
+			max = i - 1;
+	}
+	return max;
 }
 
 int main( int argc, char** argv )
@@ -135,12 +147,16 @@ int main( int argc, char** argv )
 
 	// parse overlay flags
 	const uint32_t overlayFlags = detectNet::OverlayFlagsFromStr(cmdLine.GetString("overlay", "box,labels,conf"));
+	
+	// True-vector
+	int imgc_x;
+	int imgc_y;
+	imgc_x = input->GetWidth() / 2;
+	imgc_y = input->GetHeight() / 2;
+	
 	/*
 	 * processing loop
      */
-
-
-
 	while( !signal_recieved )
 	{ 
         // capture next image image
@@ -158,13 +174,12 @@ int main( int argc, char** argv )
 
 		// detect objects in the frame
 		detectNet::Detection* detections = NULL;
-	printf("************************\n");
         
 		const int numDetections = net->Detect(image, input->GetWidth(), input->GetHeight(), &detections, overlayFlags);
-		int imgc_x;
-		int imgc_y;
 		float bbc_x[numDetections];
 		float bbc_y[numDetections];
+		float bb_area[numDetections];
+		int max_detection; // the max area of detections
 		if( numDetections > 0 )
 		{
 			LogVerbose("%i objects detected\n", numDetections);
@@ -172,22 +187,30 @@ int main( int argc, char** argv )
 			for( int n=0; n < numDetections; n++ )
 			{
 				// get bound-box center pos and image center pos
-				int image_height = input->GetHeight();
-				int image_width = input->GetWidth();
 				float b_top = detections[n].Top;
 				float b_bottom = detections[n].Bottom;
 				float b_left = detections[n].Left;
 				float b_right = detections[n].Right;
 
-				imgc_x = image_width / 2;
-				imgc_y = image_height / 2;
 				bbc_x[n] = (b_right - b_left) / 2 + b_left;
 				bbc_y[n] = (b_top - b_bottom) / 2 + b_bottom;
-				
+				bb_area[numDetections] = detections[n].Height() * detections[n].Width();
 				LogVerbose("detected obj %i  class #%u (%s)  confidence=%f\n", n, detections[n].ClassID, net->GetClassDesc(detections[n].ClassID), detections[n].Confidence);
 				LogVerbose("bounding box %i  (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, detections[n].Left, detections[n].Top, detections[n].Right, detections[n].Bottom, detections[n].Width(), detections[n].Height()); 
-				LogVerbose("bounding center %i (%f, %f) ,screen center %i (%d, %d)\n", n, bbc_x[n], bbc_y[n], n, imgc_x, imgc_y); 
+				LogVerbose("bounding center %i (%f, %f) Area= %f, screen center %i (%d, %d)\n", n, bbc_x[n], bbc_y[n], bb_area[numDetections], n, imgc_x, imgc_y); 
 			}
+			max_detection = find_max(bb_area);
+            
+            CUDA(cudaDrawCircle(image, input->GetWidth(), input->GetHeight(), bbc_x[max_detection], bbc_y[max_detection], 10, make_float4(0, 255,127,200)));
+            CUDA(cudaDrawCircle(image, input->GetWidth(), input->GetHeight(), imgc_x, imgc_y, 10, make_float4(0, 255,127,200)));
+
+			printf("\n\t#########################\n");
+			printf("\tmax detection num = %d, class = %s\n", max_detection, net->GetClassDesc(detections[max_detection].ClassID));
+			printf("\n\t#########################\n");
+
+			//distance_vec[0] = imgc_x - bbc_x[];
+			//distance_vec[1] = imgc_y - bbc_y[];
+			//distance_vec[2] = ;
 		}	
 #ifdef output_stream
 		// render outputs
