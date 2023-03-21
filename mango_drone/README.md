@@ -17,9 +17,9 @@ $ sudo pip install PyYAML mavproxy
 ```
 * test
 ```shell
-// using USB
+# using USB
 $ sudo mavproxy.py --master=/dev/ttyACM0
-// using TELEM2
+# using TELEM2
 $ sudo mavproxy.py --master=/dev/ttyTHS1
 ```
 #### using Python may face some error
