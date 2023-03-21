@@ -14,6 +14,7 @@ $ sudo apt-get install python3-dev python3-opencv python3-wxgtk4.0 python3-matpl
 * pip install
 ```shell
 $ sudo pip install PyYAML mavproxy
+$ sudo pip install dronekit
 ```
 * test
 ```shell
