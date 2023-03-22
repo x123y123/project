@@ -16,12 +16,30 @@ $ sudo apt-get install python3-dev python3-opencv python3-wxgtk4.0 python3-matpl
 $ sudo pip install PyYAML mavproxy
 $ sudo pip install dronekit
 ```
+
 * test
 ```shell
-# using USB
+# using USB to connect
 $ sudo mavproxy.py --master=/dev/ttyACM0
-# using TELEM2
+# using TELEM2 to connect
 $ sudo mavproxy.py --master=/dev/ttyTHS1
+```
+### Jetson inference(Image part)
+* But at first, you need to have Jetson board(e.g. Jetson NX, Jetson Nano, etc.)
+```shell
+$ sudo apt-get install git cmake
+$ cd ~
+$ git clone git@github.com:dusty-nv/jetson-inference.git
+$ cd jetson-inference/
+$ mkdir build && cd build
+$ cmake ../
+$ make
+$ sudo make install
+```
+## Run our control part
+```shell
+# using USB to connect
+$ sudo python3 control.py --connect /dev/ttyACM0
 ```
 #### using Python may face some error
 * TabError: inconsistent use of tabs and spaces in indentation
