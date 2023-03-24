@@ -1,37 +1,62 @@
-from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 import time
-import socket
-#import exceptions
-import math
-import argparse
+import os
+import platform
+import sys
 
-def connectMyCopter():
-    parser = argparse.ArgumentParser(description='Example showing how to set and clear vehicle channel-override information.')
-    parser.add_argument('--connect', 
-                           help="vehicle connection target string. If not specified, SITL automatically started and used.")
-    args = parser.parse_args()
-    connection_string = args.connect
-    vehicle = connect(connection_string, wait_ready=True)
-    return vehicle
+from dronekit import connect, VehicleMode,LocationGlobal,LocationGlobalRelative
+from pymavlink import mavutil
+#############################
 
-def arm():
-    while vehicle.is_armable == False:
-        print("Waiting for vehicle to become armable...")
+targetAltitude=1
+manualArm=False
+############DRONEKIT#################
+vehicle = connect('/dev/ttyACM0',baud=57600,wait_ready=True)
+
+#Select /dev/ttyAMA0 for UART. /dev/ttyACM0 for USB
+
+#########FUNCTIONS###########
+def arm_and_takeoff(targetHeight):
+    while vehicle.is_armable!=True:
+        print("Waiting for vehicle to become armable.")
         time.sleep(1)
-    print("!!!!!!!!!!! Vehicle is now armable ~~~~~~~~~")
-    print("")
-
-    vehicle.armed = True
-    while vehicle.is_armable == False:
-        print("Waiting for vehicle to become armable...")
-        time.sleep(1)
-    print("!!!!!!!!!!! Vehicle is now armable ~~~~~~~~~")
-    print("props are spinning. LOOK OUT!!!")
+    print("Vehicle is now armable")
     
+    vehicle.mode = VehicleMode("GUIDED")
+            
+    while vehicle.mode!='GUIDED':
+        print("Waiting for drone to enter GUIDED flight mode")
+        time.sleep(1)
+    print("Vehicle now in GUIDED MODE. Have fun!!")
+
+    if manualArm==False:
+        vehicle.armed = True
+        while vehicle.armed==False:
+            print("Waiting for vehicle to become armed.")
+            time.sleep(1)
+    else:
+        if vehicle.armed == False:
+            print("Exiting script. manualArm set to True but vehicle not armed.")
+            print("Set manualArm to True if desiring script to arm the drone.")
+            return None
+    print("Look out! Props are spinning!!")
+            
+    vehicle.simple_takeoff(targetHeight) ##meters
+
+    while True:
+        print("Current Altitude: %d"%vehicle.location.global_relative_frame.alt)
+        if vehicle.location.global_relative_frame.alt>=.95*targetHeight:
+            break
+        time.sleep(1)
+    print("Target altitude reached!!")
+
     return None
 
-vehicle = connectMyCopter()
-vehicle.mode = VehicleMode("GUIDED_NOGPS")
-arm()
-print("End of testing")
+############MAIN###############
 
+arm_and_takeoff(targetAltitude)
+vehicle.mode = VehicleMode("LAND")
+
+while vehicle.mode!='LAND':
+        time.sleep(1)
+        print("Waiting for drone to land")
+print("Drone in land mode. Exiting script.")
