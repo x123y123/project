@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import mplfinance as mpf
+import IPython.display as IPydisplay
 from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager
 
 ######### function ########
@@ -33,13 +34,26 @@ class trading_binance:
         hist_df[numeric_col] = hist_df[numeric_col].apply(pd.to_numeric, axis=1)
         #print(hist_df.info())
         return hist_df
-          
+    
+    def buy_sell(self, data,signal):
+        # Get futures account balance
+        balances = self.client.futures_account_balance()
+
+        # Find USDT balance in the balance list
+        usdt_balance = next(item['balance'] for item in balances if item['asset'] == 'USDT')
+
+        # Print the USDT balance
+        print(f"USDT balance: {usdt_balance}")
+        
+        # Unit=（0.01 * account_total）/ ATR
+        #data['unit'] = 0.01 * float(usdt_balance) / data['ATR']
+        data['unit'] = 0.01 * 100.0 / data['ATR']
+        
+        
 ######## strategy #########
 
 def strategy＿donchian＿channel(data):
     x1=data.Close>data.upper_band
-    print(f"data.Close= {data.Close}")
-    print(f"data.upper_band= {data.upper_band}")
     x2=data.Close.shift(1)<data.upper_band.shift(1)
     x=x1&x2
     y1=data.Close<data.lower_band
@@ -57,25 +71,52 @@ def strategy＿donchian＿channel(data):
     return (buy_date,buy_close,sell_date,sell_close)
     
     
-########### main ############
+################################################################
+#           .___  ___.      ___       __  .__   __.            #
+#           |   \/   |     /   \     |  | |  \ |  |            #
+#           |  \  /  |    /  ^  \    |  | |   \|  |            #
+#           |  |\/|  |   /  /_\  \   |  | |  . `  |            #
+#           |  |  |  |  /  _____  \  |  | |  |\   |            #
+#           |__|  |__| /__/     \__\ |__| |__| \__|            #
+################################################################                                       
 
 if __name__ == '__main__':
+   
     api_key = input('Insert your api_key')
     api_secret = input('Insert your api_secret')
     
     investment_target = 'BTCUSDT'    
     trading = trading_binance(api_key, api_secret)
     short_term = True
-    
+    if (short_term):
+        channel_len = 7
+    else :
+        channel_len = 55
+        
     prices = trading.get_daily_data(investment_target)
 
     history_prices = trading.get_history(investment_target)
-    history_prices_describe = history_prices.describe()
+    #history_prices_describe = history_prices.describe()
+
+################# WMS ##################
     
-    if (short_term):
-        channel_len = 20
-    else :
-        channel_len = 55
+    # Calculate TR
+    history_prices['TR'] = history_prices[['High', 'Close']].max(axis=1) - history_prices[['Low', 'Close']].min(axis=1)
+    history_prices['TR1'] = abs(history_prices['High'] - history_prices['Close'].shift(-1))
+    history_prices['TR2'] = abs(history_prices['Low'] - history_prices['Close'].shift(-1))
+    history_prices['TR'] = history_prices[['TR', 'TR1', 'TR2']].max(axis=1)
+    history_prices.drop(['TR1', 'TR2'], axis=1, inplace=True)
+    
+    # Calculate ATR
+    history_prices['ATR'] = history_prices['TR'].rolling(channel_len).mean()
+    
+    trading.buy_sell(history_prices, 1)
+   
+    
+
+################# buying signal & sell signal ####################
+    
+   
     
     history_prices['upper_band'] = history_prices['High'].shift(1).rolling(channel_len).max()
     history_prices['lower_band'] = history_prices['Low'].shift(1).rolling(channel_len).min()
@@ -84,6 +125,7 @@ if __name__ == '__main__':
     bd,bc,sd,sc = strategy＿donchian＿channel(history_prices)
     
 
+############# plot ##############
 
     add_plots = [
                 mpf.make_addplot(history_prices['upper_band'], color='green'),
@@ -98,9 +140,11 @@ if __name__ == '__main__':
              style='charles', 
              volume=True,
              title='BTCUSDT',
-             mav=(20,55),
-             addplot=add_plots
+             #mav=(20,55),
+             addplot=add_plots,
+             savefig='./img/donchian＿channel.png'
              )
+    IPydisplay.Image(filename='./img/donchian＿channel.png')
 
     '''
     order = trading.create_test_order(
