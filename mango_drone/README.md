@@ -3,9 +3,34 @@
 ## Device
 * Jetson NX
 * Pixhawk 2.4.8
-* f450(drone hardware)
+* F450(drone hardware)
 
-## Jetson NX setting
+## ENV setting
+### Image Part
+#### Training Part
+[Youtube](https://www.youtube.com/watch?v=fZiY7zUk3TU)
+* [Jetson-train](https://github.com/mailrocketsystems/jetson-train)
+```shell
+$  git clone git@github.com:mailrocketsystems/jetson-train.git
+```
+* [label](https://github.com/heartexlabs/labelImg)
+```shell
+$ git clone git@github.com:heartexlabs/labelImg.git
+```
+#### Inference Part
+* But at first, you need to have Jetson board(e.g. Jetson NX, Jetson Nano, etc.)
+```shell
+$ sudo apt-get install git cmake
+$ cd ~
+$ git clone git@github.com:dusty-nv/jetson-inference.git
+$ cd jetson-inference/
+$ mkdir build && cd build
+$ cmake ../
+$ make
+$ sudo make install
+```
+
+### Control Part
 * apt install
 ```shell
 $ sudo apt-get install python3-pip
@@ -24,19 +49,7 @@ $ sudo mavproxy.py --master=/dev/ttyACM0
 # using TELEM2 to connect
 $ sudo mavproxy.py --master=/dev/ttyTHS1
 ```
-### Jetson inference(Image part)
-* But at first, you need to have Jetson board(e.g. Jetson NX, Jetson Nano, etc.)
-```shell
-$ sudo apt-get install git cmake
-$ cd ~
-$ git clone git@github.com:dusty-nv/jetson-inference.git
-$ cd jetson-inference/
-$ mkdir build && cd build
-$ cmake ../
-$ make
-$ sudo make install
-```
-## Run our control part
+#### Run our control part
 ```shell
 # using USB to connect
 $ sudo python3 control.py --connect /dev/ttyACM0
