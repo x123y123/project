@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import mplfinance as mpf
 import IPython.display as IPydisplay
+import ta
 from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager
 
 ######### function ########
@@ -32,6 +33,8 @@ class trading_binance:
                         'TB quote asset volume'
                       ]
         hist_df[numeric_col] = hist_df[numeric_col].apply(pd.to_numeric, axis=1)
+        rsi = ta.momentum.RSIIndicator(hist_df['Close'], window=14)
+        hist_df['rsi'] = rsi.rsi()
         #print(hist_df.info())
         return hist_df
     
@@ -48,7 +51,11 @@ class trading_binance:
         # Unit=（0.01 * account_total）/ ATR
         #data['unit'] = 0.01 * float(usdt_balance) / data['ATR']
         data['unit'] = 0.01 * 100.0 / data['ATR']
-        
+
+######## indicator #########
+    
+def check_rsi(rsi):
+    return (rsi > 70) or (rsi < 30)
         
 ######## strategy #########
 
@@ -81,7 +88,6 @@ def strategy＿donchian＿channel(data):
 ################################################################                                       
 
 if __name__ == '__main__':
-   
     api_key = input('Insert your api_key')
     api_secret = input('Insert your api_secret')
     
@@ -89,7 +95,7 @@ if __name__ == '__main__':
     trading = trading_binance(api_key, api_secret)
     short_term = True
     if (short_term):
-        channel_len = 7
+        channel_len = 20
     else :
         channel_len = 55
         
@@ -98,6 +104,15 @@ if __name__ == '__main__':
     history_prices = trading.get_history(investment_target)
     #history_prices_describe = history_prices.describe()
 
+
+########### Is in Correction? ##########
+
+    rsi_check = history_prices['rsi'].apply(check_rsi)
+    if rsi_check is True:
+        print('turtle')
+    else:
+        print('Correction')
+        
 ################# WMS ##################
     
     # Calculate TR
