@@ -2,7 +2,15 @@ import jetson.inference
 import jetson.utils
 
 #net = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.5)
-net = jetson.inference.detectNet(model="./models/model0110/ssd-mobilenet.onnx", labels="models/model0110/labels.txt", input_blob="input_0", output_cvg="scores", output_bbox="boxes", threshold=0.5)
+net = jetson.inference.detectNet(
+                                 model="./models/model0110/ssd-mobilenet.onnx", 
+                                 labels="models/model0110/labels.txt", 
+                                 input_blob="input_0", 
+                                 output_cvg="scores", 
+                                 output_bbox="boxes", 
+                                 threshold=0.5
+                                 )
+
 camera = jetson.utils.videoSource("/dev/video0")      # '/dev/video0' for V4L2
 #display = jetson.utils.videoOutput("display://0") # 'my_video.mp4' for file
 
