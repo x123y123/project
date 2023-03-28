@@ -20,7 +20,7 @@ $ conda deactive
 ```
 * pip install
 ```shell
-$ pip install python-binance
+$ pip install python-binance pandas mplfinance backtrader
 ```
 
 ## Reference 
