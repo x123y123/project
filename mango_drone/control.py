@@ -45,12 +45,13 @@ class drone_controller:
             time.sleep(1)
         
         self.vehicle.close()
-   
+'''	   
     def send_body_ned_velocity(self, velocity_x, velocity_y, velocity_z, duration):
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
                 0, 0,    # target system, target component
-                mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 0b0000111111000111, # type_mask
                 0, 0, 0, # x, y, z positions (not used)
                 velocity_x, velocity_y, velocity_z, # m/s
@@ -59,113 +60,137 @@ class drone_controller:
         for x in range(0,duration):
             self.vehicle.send_mavlink(msg)
             time.sleep(1)
-   
+        self.vehicle.flush()
+'''   
     def move_forward(self):
         velocity_x = 0
-        velocity_y = 1
+        velocity_y = 0.25
         velocity_z = 0
         duration = 2
-        self.send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+        
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,       # time_boot_ms (not used)
+                0, 0,    # target system, target component
+                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                0b0000111111000111, # type_mask
+                0, 0, 0, # x, y, z positions (not used)
+                velocity_x, velocity_y, velocity_z, # m/s
+                0, 0, 0, # x, y, z acceleration
+                0, 0)
+        for x in range(0,duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1)
+        self.vehicle.flush()
         
     def move_backward(self):
         velocity_x = 0
-        velocity_y = -1
+        velocity_y = -0.25
         velocity_z = 0
         duration = 2
-        self.send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+        
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,       # time_boot_ms (not used)
+                0, 0,    # target system, target component
+                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                0b0000111111000111, # type_mask
+                0, 0, 0, # x, y, z positions (not used)
+                velocity_x, velocity_y, velocity_z, # m/s
+                0, 0, 0, # x, y, z acceleration
+                0, 0)
+        for x in range(0,duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1)
+        self.vehicle.flush()
 
     def move_left(self):
-        velocity_x = -1
+        velocity_x = -0.25
         velocity_y = 0
         velocity_z = 0
-        duration = 1
-        self.send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+        duration = 2
+        
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,       # time_boot_ms (not used)
+                0, 0,    # target system, target component
+                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                0b0000111111000111, # type_mask
+                0, 0, 0, # x, y, z positions (not used)
+                velocity_x, velocity_y, velocity_z, # m/s
+                0, 0, 0, # x, y, z acceleration
+                0, 0)
+        for x in range(0,duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1)
+        self.vehicle.flush()
 
     def move_right(self):
-        velocity_x = 1
+        velocity_x = 0.25
         velocity_y = 0
         velocity_z = 0
-        duration = 1
-        self.send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+        duration = 2
+        
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,       # time_boot_ms (not used)
+                0, 0,    # target system, target component
+                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                0b0000111111000111, # type_mask
+                0, 0, 0, # x, y, z positions (not used)
+                velocity_x, velocity_y, velocity_z, # m/s
+                0, 0, 0, # x, y, z acceleration
+                0, 0)
+        for x in range(0,duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1)
+        self.vehicle.flush()
     
     def move_up(self):
         velocity_x = 0
         velocity_y = 0
-        velocity_z = -1
-        duration = 1
-        self.send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+        velocity_z = -0.25
+        duration = 2
+        
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,       # time_boot_ms (not used)
+                0, 0,    # target system, target component
+                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                0b0000111111000111, # type_mask
+                0, 0, 0, # x, y, z positions (not used)
+                velocity_x, velocity_y, velocity_z, # m/s
+                0, 0, 0, # x, y, z acceleration
+                0, 0)
+        for x in range(0,duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1)
+        self.vehicle.flush()
 
 
     def move_down(self):
         velocity_x = 0
         velocity_y = 0
-        velocity_z = 1
-        duration = 1
-        self.send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
-
-'''
-    def move_left(self, distance):
-        current_location = self.vehicle.location.global_frame
-        target_location = current_location.offset_distance(distance, -90, 0)
-
-        self.move_to_location(target_location)
-
-    def move_right(self, distance):
-        current_location = self.vehicle.location.global_frame
-        target_location = current_location.offset_distance(distance, 90, 0)
-
-        self.move_to_location(target_location)
-
-    def move_forward(self, distance):
-        current_location = self.vehicle.location.global_frame
-        target_location = current_location.offset_distance(distance, 0, 0)
-
-        self.move_to_location(target_location)
-
-    def move_backward(self, distance):
-        current_location = self.vehicle.location.global_frame
-        target_location = current_location.offset_distance(distance, 180, 0)
-
-        self.move_to_location(target_location)
-
-    def move_up(self, altitude):
-        current_altitude = self.vehicle.location.global_relative_frame.alt
-        target_altitude = current_altitude + altitude
-
-        self.move_to_altitude(target_altitude)
-
-    def move_down(self, altitude):
-        current_altitude = self.vehicle.location.global_relative_frame.alt
-        target_altitude = current_altitude - altitude
-
-        self.move_to_altitude(target_altitude)
-
-    def move_to_location(self, target_location):
-        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
-            0, 0, 0,
-            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b0000111111111000,
-            target_location.lat, target_location.lon, target_location.alt,
-            0, 0, 0,
-            0, 0, 0,
-            0, 0
-        )
-
-        self.vehicle.send_mavlink(msg)
+        velocity_z = 0.25
+        duration = 2
+        
+	msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,       # time_boot_ms (not used)
+                0, 0,    # target system, target component
+                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+                0b0000111111000111, # type_mask
+                0, 0, 0, # x, y, z positions (not used)
+                velocity_x, velocity_y, velocity_z, # m/s
+                0, 0, 0, # x, y, z acceleration
+                0, 0)
+        for x in range(0,duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1)
         self.vehicle.flush()
 
-        while self.vehicle.location.global_frame.distance(target_location) > 0.5:
-            time.sleep(1)
-    def move_to_altitude(self, target_altitude):
-        self.vehicle.simple_goto(
-            location=self.vehicle.location.global_frame,
-            altitude=target_altitude
-        )
 
-        while abs(self.vehicle.location.global_relative_frame.alt - target_altitude) > 0.5:
-            time.sleep(1)
-
-
+'''
     def close_connection(self):
         self.vehicle.close()
 '''
