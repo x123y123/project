@@ -210,7 +210,7 @@ if __name__ == '__main__':
     print("left act!!")
     time.sleep(1)
     '''
-    control.move_right(2)
+    control.move_right()
     print("right act!!")
     time.sleep(1)
     '''
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     control.move_up()
     print("up act!!")
     time.sleep(1)
-    control.move_down(2)
+    control.move_down()
     print("down act!!")
     time.sleep(1)
     '''
