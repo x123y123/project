@@ -17,7 +17,7 @@ $  git clone git@github.com:mailrocketsystems/jetson-train.git
 ```shell
 $ git clone git@github.com:heartexlabs/labelImg.git
 ```
-#### Inference Part
+#### Inference Part(Jetson Inference)
 * But at first, you need to have Jetson board(e.g. Jetson NX, Jetson Nano, etc.)
 ```shell
 $ sudo apt-get install git cmake
@@ -52,7 +52,7 @@ $ sudo mavproxy.py --master=/dev/ttyTHS1
 #### Run our control part
 ```shell
 # using USB to connect
-$ sudo python3 control.py --connect /dev/ttyACM0
+$ sudo python3 control.py 
 ```
 #### using Python may face some error
 * TabError: inconsistent use of tabs and spaces in indentation
