@@ -5,7 +5,16 @@
 * Pixhawk 2.4.8
 * F450(drone hardware)
 
-## ENV setting
+## Directory Structure
+```html
+├── main.py                 # main brain to conbine image part and control part
+├── control.py              # Control Library 
+├── image.py                # Computer Vision Library
+├── models                  # Computer Vision Part weight
+└── arm_test.py             # Testing in first to check dronekit can working normally.
+```
+
+## ENV Setting
 ### Image Part
 #### Training Part
 [Youtube](https://www.youtube.com/watch?v=fZiY7zUk3TU)
