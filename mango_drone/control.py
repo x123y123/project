@@ -6,17 +6,36 @@ import sys
 from dronekit import connect, VehicleMode,LocationGlobal,LocationGlobalRelative
 from pymavlink import mavutil
 
-############DRONEKIT#################
+######### DRONEKIT ############
 #x for(+)_back(-)
 #y let(-)_right(+)
 #z up(-)_down(+)
-#########FUNCTIONS###########
+######### FUNCTIONS ###########
 
 class drone_controller:
+#This class can be used easily for drone controlling.
     def __init__(self, connection_string):
+        """
+        Function: __init__()
+        --------------------
+        Initialize and connect to pixhawk
+        
+        connection_string: port id on host device
+
+        return: None
+        """
         self.vehicle = connect(connection_string, wait_ready=True)
 
     def takeoff(self, altitude):
+        """
+        Function: takeoff()
+        --------------------
+        Let drone takeoff and change to mode to GUIDED mode
+        
+        altitude: the target height(meters) you want to takeoff
+
+        return: None
+        """
         self.vehicle.mode = VehicleMode("GUIDED")
         
         self.vehicle.armed = True
@@ -35,6 +54,14 @@ class drone_controller:
             time.sleep(1)
 
     def land(self):
+        """
+        Function: land()
+        --------------------
+        Let drone land by changing the mode to LAND mode,
+        and check the altitude at the same time.
+
+        return: None
+        """
         self.vehicle.mode = VehicleMode("LAND")
         
         while True:
@@ -45,6 +72,13 @@ class drone_controller:
         self.vehicle.close()
     
     def move_right(self):
+        """
+        Function: move_right()
+        --------------------
+        Let drone move right by sending mavlink message.
+        
+        return: None
+        """
         velocity_x = 0
         velocity_y = 0.25
         velocity_z = 0
@@ -53,7 +87,6 @@ class drone_controller:
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
                 0, 0,    # target system, target component
-                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 0b0000111111000111, # type_mask
                 0, 0, 0, # x, y, z positions (not used)
@@ -66,6 +99,14 @@ class drone_controller:
         self.vehicle.flush()
         
     def move_left(self):
+        """
+        Function: move_left()
+        --------------------
+        Let drone move left by sending mavlink message.
+        
+        return: None
+        """
+        
         velocity_x = 0
         velocity_y = -0.25
         velocity_z = 0
@@ -74,7 +115,6 @@ class drone_controller:
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
                 0, 0,    # target system, target component
-                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 0b0000111111000111, # type_mask
                 0, 0, 0, # x, y, z positions (not used)
@@ -88,6 +128,13 @@ class drone_controller:
 
 
     def move_backward(self):
+        """
+        Function: move_backward()
+        --------------------
+        Let drone move backward by sending mavlink message.
+        
+        return: None
+        """
         velocity_x = -0.25
         velocity_y = 0
         velocity_z = 0
@@ -96,7 +143,6 @@ class drone_controller:
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
                 0, 0,    # target system, target component
-                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 0b0000111111000111, # type_mask
                 0, 0, 0, # x, y, z positions (not used)
@@ -109,6 +155,13 @@ class drone_controller:
         self.vehicle.flush()
 
     def move_forward(self):
+        """
+        Function: move_forward()
+        --------------------
+        Let drone move forward by sending mavlink message.
+        
+        return: None
+        """
         velocity_x = 0.25
         velocity_y = 0
         velocity_z = 0
@@ -117,7 +170,6 @@ class drone_controller:
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
                 0, 0,    # target system, target component
-                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 0b0000111111000111, # type_mask
                 0, 0, 0, # x, y, z positions (not used)
@@ -130,6 +182,13 @@ class drone_controller:
         self.vehicle.flush()
     
     def move_up(self):
+        """
+        Function: move_up()
+        --------------------
+        Let drone move up by sending mavlink message.
+        
+        return: None
+        """
         velocity_x = 0
         velocity_y = 0
         velocity_z = -0.25
@@ -138,7 +197,6 @@ class drone_controller:
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
                 0, 0,    # target system, target component
-                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 0b0000111111000111, # type_mask
                 0, 0, 0, # x, y, z positions (not used)
@@ -152,6 +210,13 @@ class drone_controller:
 
 
     def move_down(self):
+        """
+        Function: move_down()
+        --------------------
+        Let drone move down by sending mavlink message.
+        
+        return: None
+        """
         velocity_x = 0
         velocity_y = 0
         velocity_z = 0.25
@@ -159,7 +224,6 @@ class drone_controller:
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
                 0, 0,    # target system, target component
-                #mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
                 0b0000111111000111, # type_mask
                 0, 0, 0, # x, y, z positions (not used)
@@ -170,8 +234,11 @@ class drone_controller:
             self.vehicle.send_mavlink(msg)
             time.sleep(1)
         self.vehicle.flush()
-
-
+'''
+def control():
+    connection_string = '/dev/ttyACM0'
+    control = drone_controller(connection_string)
+'''
 '''
     def close_connection(self):
         self.vehicle.close()
