@@ -6,6 +6,19 @@ import sys
 from dronekit import connect, VehicleMode,LocationGlobal,LocationGlobalRelative
 from pymavlink import mavutil
 
+
+######### performance monitor  ##########
+
+def performance_monitor(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"{func.__name__} took {execution_time} seconds to execute.")
+        return result
+    return wrapper
+
 ######### DRONEKIT ############
 #x for(+)_back(-)
 #y let(-)_right(+)
@@ -14,6 +27,7 @@ from pymavlink import mavutil
 
 class drone_controller:
 #This class can be used easily for drone controlling.
+    @performance_monitor
     def __init__(self, connection_string):
         """
         Function: __init__()
@@ -26,6 +40,7 @@ class drone_controller:
         """
         self.vehicle = connect(connection_string, wait_ready=True)
 
+    @performance_monitor
     def takeoff(self, altitude):
         """
         Function: takeoff()
@@ -53,6 +68,7 @@ class drone_controller:
                 break
             time.sleep(1)
 
+    @performance_monitor
     def land(self):
         """
         Function: land()
@@ -71,6 +87,7 @@ class drone_controller:
         
         self.vehicle.close()
     
+    @performance_monitor
     def move_right(self):
         """
         Function: move_right()
@@ -98,6 +115,7 @@ class drone_controller:
             time.sleep(1)
         self.vehicle.flush()
         
+    @performance_monitor
     def move_left(self):
         """
         Function: move_left()
@@ -127,6 +145,7 @@ class drone_controller:
         self.vehicle.flush()
 
 
+    @performance_monitor
     def move_backward(self):
         """
         Function: move_backward()
@@ -154,6 +173,7 @@ class drone_controller:
             time.sleep(1)
         self.vehicle.flush()
 
+    @performance_monitor
     def move_forward(self):
         """
         Function: move_forward()
@@ -181,6 +201,7 @@ class drone_controller:
             time.sleep(1)
         self.vehicle.flush()
     
+    @performance_monitor
     def move_up(self):
         """
         Function: move_up()
@@ -209,6 +230,7 @@ class drone_controller:
         self.vehicle.flush()
 
 
+    @performance_monitor
     def move_down(self):
         """
         Function: move_down()
@@ -234,15 +256,14 @@ class drone_controller:
             self.vehicle.send_mavlink(msg)
             time.sleep(1)
         self.vehicle.flush()
-'''
+"""
 def control():
     connection_string = '/dev/ttyACM0'
     control = drone_controller(connection_string)
-'''
-'''
-    def close_connection(self):
+
+def close_connection(self):
         self.vehicle.close()
-'''
+"""
 ############MAIN###############
 if __name__ == '__main__':
     connection_string = '/dev/ttyACM0'
