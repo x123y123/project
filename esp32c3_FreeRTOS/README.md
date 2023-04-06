@@ -12,3 +12,4 @@ Because of using arduino IDE, so read [arduino-esp32 Document](https://docs.espr
 If you are the first time to use this board, press the `boot` button don't let go of the button for 1~2 seconds, then preset `reset` bottom and release both of button. Then flash again.
 ## Reference
 * [arduino-esp32](https://github.com/espressif/arduino-esp32)
+* [Youtube:esp32 setting](https://www.youtube.com/watch?v=b01l9O43t5Y&t=206s)
