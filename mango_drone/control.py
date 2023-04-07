@@ -8,15 +8,17 @@ from pymavlink import mavutil
 
 
 ######### performance monitor  ##########
-
-def performance_monitor(func):
-    def wrapper(*args, **kwargs):
+from typing import Any, Callable, List, TypeVar
+F = TypeVar("F", bound=Callable[..., Any])
+def performance_monitor(func: F) -> F:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
         execution_time = end_time - start_time
         print(f"{func.__name__} took {execution_time} seconds to execute.")
         return result
+    wrapper.execution_times: List[float] = []
     return wrapper
 
 ######### DRONEKIT ############
@@ -28,7 +30,7 @@ def performance_monitor(func):
 class drone_controller:
 #This class can be used easily for drone controlling.
     @performance_monitor
-    def __init__(self, connection_string):
+    def __init__(self, connection_string: str) -> None:
         """
         Function: __init__()
         --------------------
@@ -41,7 +43,7 @@ class drone_controller:
         self.vehicle = connect(connection_string, wait_ready=True)
 
     @performance_monitor
-    def takeoff(self, altitude):
+    def takeoff(self, altitude: float) -> None:
         """
         Function: takeoff()
         --------------------
@@ -69,7 +71,7 @@ class drone_controller:
             time.sleep(1)
 
     @performance_monitor
-    def land(self):
+    def land(self) -> None:
         """
         Function: land()
         --------------------
@@ -88,7 +90,7 @@ class drone_controller:
         self.vehicle.close()
     
     @performance_monitor
-    def move_right(self):
+    def move_right(self) -> None:
         """
         Function: move_right()
         --------------------
@@ -116,7 +118,7 @@ class drone_controller:
         self.vehicle.flush()
         
     @performance_monitor
-    def move_left(self):
+    def move_left(self) -> None:
         """
         Function: move_left()
         --------------------
@@ -146,7 +148,7 @@ class drone_controller:
 
 
     @performance_monitor
-    def move_backward(self):
+    def move_backward(self) -> None:
         """
         Function: move_backward()
         --------------------
@@ -174,7 +176,7 @@ class drone_controller:
         self.vehicle.flush()
 
     @performance_monitor
-    def move_forward(self):
+    def move_forward(self) -> None:
         """
         Function: move_forward()
         --------------------
@@ -202,7 +204,7 @@ class drone_controller:
         self.vehicle.flush()
     
     @performance_monitor
-    def move_up(self):
+    def move_up(self) -> None:
         """
         Function: move_up()
         --------------------
@@ -231,7 +233,7 @@ class drone_controller:
 
 
     @performance_monitor
-    def move_down(self):
+    def move_down(self) -> None:
         """
         Function: move_down()
         --------------------
@@ -257,10 +259,6 @@ class drone_controller:
             time.sleep(1)
         self.vehicle.flush()
 """
-def control():
-    connection_string = '/dev/ttyACM0'
-    control = drone_controller(connection_string)
-
 def close_connection(self):
         self.vehicle.close()
 """
