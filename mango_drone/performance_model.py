@@ -1,3 +1,4 @@
+import time
 from typing import Any, Callable, List, TypeVar
 
 F = TypeVar("F", bound=Callable[..., Any])
