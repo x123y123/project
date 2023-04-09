@@ -89,7 +89,6 @@ class drone_controller:
         velocity_x = 0
         velocity_y = 0.25
         velocity_z = 0
-        duration = 2
         
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
@@ -100,10 +99,12 @@ class drone_controller:
                 velocity_x, velocity_y, velocity_z, # m/s
                 0, 0, 0, # x, y, z acceleration
                 0, 0)
-        for x in range(0,duration):
-            self.vehicle.send_mavlink(msg)
-            time.sleep(1)
+        start_time = time.time()
+        self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
+        end_time = time.time()
+        latency = end_time - start_time
+        print(f"move_right latency: {latency}")
         
     @performance_monitor
     def move_left(self) -> None:
@@ -118,7 +119,7 @@ class drone_controller:
         velocity_x = 0
         velocity_y = -0.25
         velocity_z = 0
-        duration = 2
+        
         
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
@@ -129,10 +130,12 @@ class drone_controller:
                 velocity_x, velocity_y, velocity_z, # m/s
                 0, 0, 0, # x, y, z acceleration
                 0, 0)
-        for x in range(0,duration):
-            self.vehicle.send_mavlink(msg)
-            time.sleep(1)
+        start_time = time.time()
+        self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
+        end_time = time.time()
+        latency = end_time - start_time
+        print(f"move_left latency: {latency}")
 
 
     @performance_monitor
@@ -147,7 +150,6 @@ class drone_controller:
         velocity_x = -0.25
         velocity_y = 0
         velocity_z = 0
-        duration = 2
         
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
@@ -158,10 +160,12 @@ class drone_controller:
                 velocity_x, velocity_y, velocity_z, # m/s
                 0, 0, 0, # x, y, z acceleration
                 0, 0)
-        for x in range(0,duration):
-            self.vehicle.send_mavlink(msg)
-            time.sleep(1)
+        start_time = time.time()
+        self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
+        end_time = time.time()
+        latency = end_time - start_time
+        print(f"move_backward latency: {latency}")
 
     @performance_monitor
     def move_forward(self) -> None:
@@ -175,7 +179,6 @@ class drone_controller:
         velocity_x = 0.25
         velocity_y = 0
         velocity_z = 0
-        duration = 2
         
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
@@ -186,10 +189,12 @@ class drone_controller:
                 velocity_x, velocity_y, velocity_z, # m/s
                 0, 0, 0, # x, y, z acceleration
                 0, 0)
-        for x in range(0,duration):
-            self.vehicle.send_mavlink(msg)
-            time.sleep(1)
+        start_time = time.time()
+        self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
+        end_time = time.time()
+        latency = end_time - start_time
+        print(f"move_forward latency: {latency}")
     
     @performance_monitor
     def move_up(self) -> None:
@@ -203,7 +208,6 @@ class drone_controller:
         velocity_x = 0
         velocity_y = 0
         velocity_z = -0.25
-        duration = 2
         
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
@@ -214,10 +218,12 @@ class drone_controller:
                 velocity_x, velocity_y, velocity_z, # m/s
                 0, 0, 0, # x, y, z acceleration
                 0, 0)
-        for x in range(0,duration):
-            self.vehicle.send_mavlink(msg)
-            time.sleep(1)
+        start_time = time.time()
+        self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
+        end_time = time.time()
+        latency = end_time - start_time
+        print(f"move_up latency: {latency}")
 
 
     @performance_monitor
@@ -232,7 +238,7 @@ class drone_controller:
         velocity_x = 0
         velocity_y = 0
         velocity_z = 0.25
-        duration = 2
+        
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,       # time_boot_ms (not used)
                 0, 0,    # target system, target component
@@ -242,10 +248,12 @@ class drone_controller:
                 velocity_x, velocity_y, velocity_z, # m/s
                 0, 0, 0, # x, y, z acceleration
                 0, 0)
-        for x in range(0,duration):
-            self.vehicle.send_mavlink(msg)
-            time.sleep(1)
+        start_time = time.time()
+        self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
+        end_time = time.time()
+        latency = end_time - start_time
+        print(f"move_down latency: {latency}")
 """
 def close_connection(self):
         self.vehicle.close()
